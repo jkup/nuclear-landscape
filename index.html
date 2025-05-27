@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Nuclear Landscape</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1 class="title">Nuclear Landscape Explorer</h1>
+        <p class="subtitle">Interactive Chart of Nuclides</p>
+        <div class="controls">
+          <button id="zoomIn" class="control-btn">Zoom In</button>
+          <button id="zoomOut" class="control-btn">Zoom Out</button>
+          <button id="resetView" class="control-btn">Reset View</button>
+          <div class="view-mode">
+            <label for="colorMode">Color by:</label>
+            <select id="colorMode" class="color-select">
+              <option value="stability">Stability</option>
+              <option value="decay">Decay Mode</option>
+              <option value="halflife">Half-life</option>
+              <option value="magic">Magic Numbers</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <div class="visualization-container">
+        <div class="axis-labels">
+          <div class="y-axis-label">Protons (Z)</div>
+          <div class="x-axis-label">Neutrons (N)</div>
+        </div>
+        <canvas id="nuclearCanvas" width="1200" height="800"></canvas>
+        <div class="legend" id="legend">
+          <h3>Legend</h3>
+          <div class="legend-items" id="legendItems">
+            <!-- Legend items will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <div class="info-content">
+          <button class="close-btn" id="closeInfo">&times;</button>
+          <h3 id="nucleusTitle">Select a nucleus</h3>
+          <div class="info-details" id="infoDetails">
+            <p>Click on any nucleus to see detailed information</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tooltip" id="tooltip">
+        <div class="tooltip-content">
+          <div class="tooltip-title" id="tooltipTitle"></div>
+          <div class="tooltip-details" id="tooltipDetails"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="nuclearData.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
