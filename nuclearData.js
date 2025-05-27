@@ -326,6 +326,107 @@ const NUCLEAR_DATA = {
       halfLife: Infinity,
     },
 
+    // More stable isotopes for better patterns
+    {
+      z: 9,
+      n: 10,
+      mass: 19,
+      symbol: "F",
+      name: "Fluorine-19",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 10,
+      n: 10,
+      mass: 20,
+      symbol: "Ne",
+      name: "Neon-20",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 11,
+      n: 12,
+      mass: 23,
+      symbol: "Na",
+      name: "Sodium-23",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 12,
+      n: 12,
+      mass: 24,
+      symbol: "Mg",
+      name: "Magnesium-24",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 13,
+      n: 14,
+      mass: 27,
+      symbol: "Al",
+      name: "Aluminum-27",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 14,
+      n: 14,
+      mass: 28,
+      symbol: "Si",
+      name: "Silicon-28",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 15,
+      n: 16,
+      mass: 31,
+      symbol: "P",
+      name: "Phosphorus-31",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 16,
+      n: 16,
+      mass: 32,
+      symbol: "S",
+      name: "Sulfur-32",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 17,
+      n: 18,
+      mass: 35,
+      symbol: "Cl",
+      name: "Chlorine-35",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 18,
+      n: 18,
+      mass: 36,
+      symbol: "Ar",
+      name: "Argon-36",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+    {
+      z: 19,
+      n: 20,
+      mass: 39,
+      symbol: "K",
+      name: "Potassium-39",
+      stability: "stable",
+      halfLife: Infinity,
+    },
+
     // Some radioactive heavy elements
     {
       z: 92,
@@ -372,9 +473,26 @@ function generateAdditionalIsotopes() {
 
   // Generate isotopes for elements Z=1 to Z=120
   for (let z = 1; z <= 120; z++) {
-    // Generate neutron numbers around the valley of stability
-    const minN = Math.max(0, z - 10);
-    const maxN = z + Math.floor(z * 1.5) + 10;
+    // Generate neutron numbers around the valley of stability with more realistic bounds
+    let minN, maxN;
+
+    if (z <= 20) {
+      // Light elements: N ≈ Z
+      minN = Math.max(0, z - 5);
+      maxN = z + 8;
+    } else if (z <= 50) {
+      // Medium elements: gradually increasing N/Z ratio
+      minN = Math.max(0, Math.floor(z * 0.8));
+      maxN = Math.floor(z * 1.5);
+    } else if (z <= 82) {
+      // Heavy elements: higher N/Z ratio
+      minN = Math.floor(z * 1.0);
+      maxN = Math.floor(z * 1.7);
+    } else {
+      // Superheavy elements: very neutron-rich for stability
+      minN = Math.floor(z * 1.2);
+      maxN = Math.floor(z * 2.0);
+    }
 
     for (let n = minN; n <= maxN; n++) {
       // Skip if already exists in our data
@@ -532,37 +650,68 @@ function getElementSymbol(z) {
   return symbols[z] || `E${z}`;
 }
 
-// Simplified stability determination
+// Improved stability determination based on nuclear physics
 function determineStability(z, n) {
   const mass = z + n;
 
-  // Known stable isotopes (simplified)
-  if (
-    (z <= 20 && Math.abs(n - z) <= 2) ||
-    (z === 26 && n === 30) ||
-    (z === 82 && n === 126)
-  ) {
+  // Known stable isotopes (more comprehensive)
+  if (isStableIsotope(z, n)) {
     return "stable";
   }
 
-  // Light elements tend to have N≈Z
-  if (z <= 20) {
-    if (n < z - 3) return "beta+";
-    if (n > z + 3) return "beta-";
-    if (n > z) return "beta-";
+  // Very light elements (Z <= 10)
+  if (z <= 10) {
+    if (n < z - 2) return "beta+";
+    if (n > z + 4) return "beta-";
+    if (n > z + 1) return "beta-";
     return "beta+";
   }
 
-  // Heavy elements (Z > 82) tend to alpha decay
-  if (z > 82) {
-    return "alpha";
+  // Light to medium elements (10 < Z <= 20)
+  if (z <= 20) {
+    if (n < z - 2) return "beta+";
+    if (n > z + 6) return "beta-";
+    if (n > z + 2) return "beta-";
+    return "beta+";
   }
 
-  // Medium elements
-  if (n > z * 1.5) return "beta-";
-  if (n < z * 0.8) return "beta+";
+  // Medium elements (20 < Z <= 50)
+  if (z <= 50) {
+    if (n < z * 0.9) return "beta+";
+    if (n > z * 1.4) return "beta-";
+    if (n > z * 1.2) return "beta-";
+    return "beta+";
+  }
 
-  return "beta-";
+  // Heavy elements (50 < Z <= 82)
+  if (z <= 82) {
+    if (n < z * 1.0) return "beta+";
+    if (n > z * 1.6) return "beta-";
+    if (n > z * 1.3) return "beta-";
+    return "beta+";
+  }
+
+  // Very heavy elements (Z > 82) - mostly alpha decay
+  return "alpha";
+}
+
+// Helper function to identify known stable isotopes
+function isStableIsotope(z, n) {
+  // More comprehensive list of stable isotope conditions
+  const stableConditions = [
+    // Light elements with N ≈ Z
+    z <= 20 && Math.abs(n - z) <= 1,
+    // Specific stable heavy isotopes
+    z === 26 && n === 30, // Fe-56
+    z === 28 && n === 30, // Ni-58
+    z === 50 && n === 68, // Sn-118
+    z === 82 && n >= 122 && n <= 126, // Pb isotopes
+    // Magic number combinations
+    NUCLEAR_DATA.magicNumbers.protons.includes(z) &&
+      NUCLEAR_DATA.magicNumbers.neutrons.includes(n),
+  ];
+
+  return stableConditions.some((condition) => condition);
 }
 
 // Estimate half-life (very simplified)

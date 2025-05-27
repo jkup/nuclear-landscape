@@ -44,10 +44,10 @@ class NuclearLandscape {
     this.canvas.width = Math.min(1200, container.clientWidth - 60);
     this.canvas.height = Math.min(800, window.innerHeight - 300);
 
-    // Set initial view to show light elements
-    this.settings.offsetX = 50;
-    this.settings.offsetY = this.canvas.height - 100;
-    this.settings.zoom = 2;
+    // Set initial view to show light elements centered
+    this.settings.offsetX = 100;
+    this.settings.offsetY = this.canvas.height - 200;
+    this.settings.zoom = 3;
   }
 
   setupEventListeners() {
@@ -98,9 +98,9 @@ class NuclearLandscape {
   }
 
   resetView() {
-    this.settings.zoom = 2;
-    this.settings.offsetX = 50;
-    this.settings.offsetY = this.canvas.height - 100;
+    this.settings.zoom = 3;
+    this.settings.offsetX = 100;
+    this.settings.offsetY = this.canvas.height - 200;
     this.render();
   }
 
@@ -185,9 +185,14 @@ class NuclearLandscape {
     const n = Math.floor(
       worldX / (this.settings.cellSize + this.settings.padding)
     );
-    const z =
-      this.settings.maxZ -
-      Math.floor(worldY / (this.settings.cellSize + this.settings.padding));
+    const z = Math.floor(
+      -worldY / (this.settings.cellSize + this.settings.padding)
+    );
+
+    // Ensure we have valid coordinates
+    if (n < 0 || z < 0 || n > this.settings.maxN || z > this.settings.maxZ) {
+      return null;
+    }
 
     return NUCLEAR_DATA.allIsotopes.find(
       (isotope) => isotope.z === z && isotope.n === n
