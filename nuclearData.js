@@ -695,42 +695,126 @@ function determineStability(z, n) {
   return "alpha";
 }
 
-// Helper function to identify known stable isotopes
+// Helper function to identify known stable isotopes with shell effects
 function isStableIsotope(z, n) {
-  // More comprehensive list of stable isotope conditions
+  // Known stable isotopes with shell structure considerations
   const stableConditions = [
-    // Light elements with N ≈ Z
-    z <= 20 && Math.abs(n - z) <= 1,
+    // Light elements with N ≈ Z (enhanced near magic numbers)
+    z <= 20 &&
+      Math.abs(n - z) <= 1 &&
+      (z <= 10 ||
+        isNearMagicNumber(z, NUCLEAR_DATA.magicNumbers.protons) ||
+        isNearMagicNumber(n, NUCLEAR_DATA.magicNumbers.neutrons)),
+
+    // Doubly magic nuclei (extra stable)
+    z === 2 && n === 2, // He-4
+    z === 8 && n === 8, // O-16
+    z === 20 && n === 20, // Ca-40
+    z === 28 && n === 28, // Ni-56
+    z === 50 && n === 50, // Sn-100
+    z === 82 && n === 126, // Pb-208
+
     // Specific stable heavy isotopes
     z === 26 && n === 30, // Fe-56
     z === 28 && n === 30, // Ni-58
-    z === 50 && n === 68, // Sn-118
+    z === 50 && n >= 62 && n <= 76, // Sn isotopes
     z === 82 && n >= 122 && n <= 126, // Pb isotopes
-    // Magic number combinations
+
+    // Magic number enhanced stability
     NUCLEAR_DATA.magicNumbers.protons.includes(z) &&
-      NUCLEAR_DATA.magicNumbers.neutrons.includes(n),
+      isNearMagicNumber(n, NUCLEAR_DATA.magicNumbers.neutrons),
+    NUCLEAR_DATA.magicNumbers.neutrons.includes(n) &&
+      isNearMagicNumber(z, NUCLEAR_DATA.magicNumbers.protons),
+
+    // Semi-magic nuclei (one magic number)
+    z === 50 && n >= 60 && n <= 80, // Tin isotopes
+    z === 82 && n >= 120 && n <= 130, // Lead isotopes
+    n === 50 && z >= 28 && z <= 40, // N=50 isotones
+    n === 82 && z >= 60 && z <= 70, // N=82 isotones
   ];
 
   return stableConditions.some((condition) => condition);
 }
 
-// Estimate half-life (very simplified)
+// Enhanced half-life estimation with shell effects
 function estimateHalfLife(z, n, stability) {
   if (stability === "stable") return Infinity;
 
   const mass = z + n;
 
-  // Very heavy elements are very short-lived
-  if (z > 110) return Math.random() * 10;
+  // Base half-life depending on mass region
+  let baseHalfLife;
 
-  // Heavy elements
-  if (z > 82) return 1e6 + Math.random() * 1e12;
+  if (z > 110) {
+    // Superheavy elements - very short
+    baseHalfLife = 0.001 + Math.random() * 10;
+  } else if (z > 82) {
+    // Heavy elements - variable
+    baseHalfLife = 1e3 + Math.random() * 1e12;
+  } else if (z > 50) {
+    // Medium-heavy elements
+    baseHalfLife = 1e6 + Math.random() * 1e15;
+  } else if (z > 20) {
+    // Medium elements
+    baseHalfLife = 1e3 + Math.random() * 1e12;
+  } else {
+    // Light elements
+    baseHalfLife = 0.1 + Math.random() * 1e6;
+  }
 
-  // Light unstable isotopes
-  if (z <= 10) return Math.random() * 1000;
+  // Shell effects - enhance stability near magic numbers
+  const magicProtonBonus = NUCLEAR_DATA.magicNumbers.protons.includes(z)
+    ? 100
+    : 1;
+  const magicNeutronBonus = NUCLEAR_DATA.magicNumbers.neutrons.includes(n)
+    ? 100
+    : 1;
+  const nearMagicProtonBonus = isNearMagicNumber(
+    z,
+    NUCLEAR_DATA.magicNumbers.protons
+  )
+    ? 10
+    : 1;
+  const nearMagicNeutronBonus = isNearMagicNumber(
+    n,
+    NUCLEAR_DATA.magicNumbers.neutrons
+  )
+    ? 10
+    : 1;
 
-  // Medium elements
-  return Math.random() * 1e15;
+  // Distance from valley of stability penalty
+  const valleyDistance = getDistanceFromValley(z, n);
+  const stabilityPenalty = Math.exp(-valleyDistance * 0.5);
+
+  return (
+    baseHalfLife *
+    magicProtonBonus *
+    magicNeutronBonus *
+    nearMagicProtonBonus *
+    nearMagicNeutronBonus *
+    stabilityPenalty
+  );
+}
+
+// Helper function to check if near magic number
+function isNearMagicNumber(value, magicNumbers) {
+  return magicNumbers.some((magic) => Math.abs(value - magic) <= 2);
+}
+
+// Helper function to get distance from valley of stability
+function getDistanceFromValley(z, n) {
+  let idealN;
+  if (z <= 20) {
+    idealN = z; // N ≈ Z for light elements
+  } else if (z <= 50) {
+    idealN = z * 1.2; // Gradually increasing N/Z
+  } else if (z <= 82) {
+    idealN = z * 1.4; // Higher N/Z for heavy elements
+  } else {
+    idealN = z * 1.6; // Very high N/Z for superheavy
+  }
+
+  return Math.abs(n - idealN) / Math.max(z, 10);
 }
 
 // Initialize complete isotope data

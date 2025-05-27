@@ -399,13 +399,13 @@ class NuclearLandscape {
 
   drawGrid() {
     const { ctx, settings } = this;
-
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
-
     const cellSize = settings.cellSize * settings.zoom;
     const padding = settings.padding * settings.zoom;
     const step = cellSize + padding;
+
+    // Regular grid lines (faint)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.lineWidth = 1;
 
     // Vertical lines (neutron numbers)
     for (let n = 0; n <= settings.maxN; n += 10) {
@@ -428,6 +428,36 @@ class NuclearLandscape {
         ctx.stroke();
       }
     }
+
+    // Magic number lines (prominent)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+
+    // Magic neutron numbers (vertical lines)
+    NUCLEAR_DATA.magicNumbers.neutrons.forEach((n) => {
+      if (n <= settings.maxN) {
+        const x = settings.offsetX + n * step;
+        if (x >= 0 && x <= this.canvas.width) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, this.canvas.height);
+          ctx.stroke();
+        }
+      }
+    });
+
+    // Magic proton numbers (horizontal lines)
+    NUCLEAR_DATA.magicNumbers.protons.forEach((z) => {
+      if (z <= settings.maxZ) {
+        const y = settings.offsetY - z * step;
+        if (y >= 0 && y <= this.canvas.height) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(this.canvas.width, y);
+          ctx.stroke();
+        }
+      }
+    });
   }
 
   drawNuclei() {
